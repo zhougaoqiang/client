@@ -10,10 +10,11 @@
 #include <WS2tcpip.h>  //定义在socklen_t
 
 #pragma comment(lib, "WS2_32")   //链接到WS2_32.lib
+#pragma warning(diable:4996);
 
 using namespace std;
 
-#define Server_IP "127.0.0.1"   //此为默认服务器端IP地址
+#define Server_IP "192.168.1.140"   //此为默认服务器端IP地址
 #define Server_Port 8888   //服务端口号
 
 class client
@@ -22,9 +23,12 @@ public:
 	client();
 	void init();
 	void process();
+	void login();
 
 private:
-	int users;
+	int user;
+	char username[100];
+	char password[100];
 	int writing;
 	sockaddr_in serverAddress;  //IPv4的地址包括服务端地址族， 服务端IP地址，　服务端端口号。
 	void sendata();
@@ -32,7 +36,7 @@ private:
 
 client::client()
 {
-	users = 0;
+	user = 0;
 	writing = 0;
 	serverAddress.sin_family = PF_INET; 
 	serverAddress.sin_port = Server_Port;
@@ -50,8 +54,8 @@ void client::init()
 		WSACleanup();
 	}
 
-	users = socket(AF_INET, SOCK_STREAM, 0);  //采用IPv4，TCP传输
-	if (users <= 0)
+	user = socket(AF_INET, SOCK_STREAM, 0);  //采用IPv4，TCP传输
+	if (user <= 0)
 	{
 		perror("创建客户端失败");
 		cout << "Error at socket(): " << WSAGetLastError() << endl;
@@ -60,7 +64,7 @@ void client::init()
 	cout << "创建客户端成功" << endl;
 
 	//阻塞式的等待服务器连接
-	if (connect(users, (const sockaddr *)&serverAddress, sizeof(serverAddress))< 0)
+	if (connect(user, (const sockaddr *)&serverAddress, sizeof(serverAddress))< 0)
 	{
 		perror("连接服务器失败");
 		cout << "Error at socket(): " << WSAGetLastError() << endl;
@@ -77,12 +81,13 @@ void client::process() {
 	FD_ZERO(&fedwrite); //将fds清零
 
 	init();
+	login();
 
 	while (1)
 	{
-		FD_SET(users, &fdread);
+		FD_SET(user, &fdread);
 		if (writing == 0)
-			FD_SET(users, &fedwrite);
+			FD_SET(user, &fedwrite);
 
 		struct timeval timeout = { 1, 0 }; //每个select等待3秒
 
@@ -102,9 +107,9 @@ void client::process() {
 		}
 		default:
 		{
-			if (FD_ISSET(users, &fdread)) //则有读事件
+			if (FD_ISSET(user, &fdread)) //则有读事件
 			{
-				int size = recv(users, recvbuff, sizeof(recvbuff) - 1, 0);
+				int size = recv(user, recvbuff, sizeof(recvbuff) - 1, 0);
 				if (size > 0)
 				{
 					cout << "Server: " << recvbuff << endl;
@@ -116,7 +121,7 @@ void client::process() {
 					exit(1);
 				}
 			}
-			if (FD_ISSET(users, &fedwrite))
+			if (FD_ISSET(user, &fedwrite))
 			{
 				FD_ZERO(&fedwrite); //将fedwrite清零
 				writing = 1; //表示正在写作
@@ -137,8 +142,48 @@ void client::sendata()
 	char middle[1024];
 
 	cin.getline(sendbuf, 1024); //读取一行
-	send(users, sendbuf, sizeof(sendbuf) - 1, 0);
+	send(user, sendbuf, sizeof(sendbuf) - 1, 0);
 	writing = 0;
+}
+
+void client::login()
+{
+	char passwordvalidation[100];
+	char pass[100] = "passed";
+	memset(passwordvalidation, '\0', sizeof(passwordvalidation));
+
+	while (1) 
+	{
+	cout << "Please enter username: ";
+	cin >> username;
+
+	int size1 = send(user, username, strlen(username), 0);
+	cout << size1 << endl;
+
+	int size = recv(user, passwordvalidation, sizeof(passwordvalidation), 0);
+	if (size > 0)
+	{
+		int size2 = strcmp(pass, passwordvalidation);
+		cout << size2 << endl;
+		if (size2 == 0)
+		{
+			cout << "login success\n";
+			break;
+		}
+		else
+		{
+			cout << "login falied\n";
+			continue;
+		}
+			
+	}
+	else
+	{
+		cout << "connection failed." << endl;
+		exit(1);
+	}
+	}
+	
 }
 #endif // !Client_H_
 
