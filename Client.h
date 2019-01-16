@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <WinSock2.h>
+#include "sqlite3.h"
 #include <stdio.h>
 #include <WS2tcpip.h>  //¶¨ÒåÔÚsocklen_t
 
@@ -156,16 +157,17 @@ void client::login()
 	{
 	cout << "Please enter username: ";
 	cin >> username;
+	send(user, username, strlen(username), 0);
 
-	int size1 = send(user, username, strlen(username), 0);
-	cout << size1 << endl;
+
+	cout << "Plase enter password: ";
+	cin >> password;
+	send(user, password, strlen(password), 0);
 
 	int size = recv(user, passwordvalidation, sizeof(passwordvalidation), 0);
 	if (size > 0)
 	{
-		int size2 = strcmp(pass, passwordvalidation);
-		cout << size2 << endl;
-		if (size2 == 0)
+		if (strcmp(pass, passwordvalidation) == 0)
 		{
 			cout << "login success\n";
 			break;
@@ -175,7 +177,6 @@ void client::login()
 			cout << "login falied\n";
 			continue;
 		}
-			
 	}
 	else
 	{
