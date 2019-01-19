@@ -150,40 +150,91 @@ void client::sendata()
 void client::login()
 {
 	char passwordvalidation[100];
-	char pass[100] = "passed";
+	char accountCreateStatus[100];
+	char pass[7] = "passed";
+	memset(accountCreateStatus, '\0', sizeof(accountCreateStatus));
 	memset(passwordvalidation, '\0', sizeof(passwordvalidation));
 
-	while (1) 
+
+	cout << "1: New user; 2: login\n";
+	int accountCreation;
+	cin >> accountCreation;
+	
+	switch (accountCreation)
 	{
-	cout << "Please enter username: ";
-	cin >> username;
-	send(user, username, strlen(username), 0);
-
-
-	cout << "Plase enter password: ";
-	cin >> password;
-	send(user, password, strlen(password), 0);
-
-	int size = recv(user, passwordvalidation, sizeof(passwordvalidation), 0);
-	if (size > 0)
-	{
-		if (strcmp(pass, passwordvalidation) == 0)
+	case 1:
+		char temp2[100];
+		while (1)
 		{
-			cout << "login success\n";
-			break;
+				char temp1[100] = "New account creation";
+				cout << "New account creating...\n";
+				send(user, temp1, strlen(temp1), 0);
+				cout << "Please enter new username: \n";
+				cin >> username;
+				send(user, username, strlen(username), 0);
+				cout << "Please enter your password: \n";
+				cin >> password;
+				send(user, password, strlen(password), 0);
+
+
+				int size = recv(user, accountCreateStatus, sizeof(accountCreateStatus), 0);
+				if (size > 0)
+				{
+					char temprec[] = "User account creation successfully";
+					if (strcmp(temprec, accountCreateStatus) == 0)
+					{
+						cout << accountCreateStatus << endl;
+						break;
+					}
+					else
+					{
+						cout << accountCreateStatus << endl;
+						exit(1);
+					}
+				}
+				else
+				{
+					cout << "connection failed." << endl;
+					exit(1);
+				}
+				break;
 		}
-		else
+		break;
+	default:
+		while (1)
 		{
-			cout << "login falied\n";
-			continue;
+			char temp2[100] = "Exist account";
+			send(user, temp2, strlen(temp2), 0);
+			cout << "Please enter username: ";
+			cin >> username;
+			send(user, username, strlen(username), 0);
+
+			cout << "Plase enter password: ";
+			cin >> password;
+			send(user, password, strlen(password), 0);
+
+			int size = recv(user, passwordvalidation, sizeof(passwordvalidation), 0);
+			if (size > 0)
+			{
+				if (strcmp(pass, passwordvalidation) == 0)
+				{
+					cout << "login success\n";
+					break;
+				}
+				else
+				{
+					cout << "login falied\n";
+					exit(1);
+				}
+			}
+			else
+			{
+				cout << "connection failed." << endl;
+				exit(1);
+			}
 		}
 	}
-	else
-	{
-		cout << "connection failed." << endl;
-		exit(1);
-	}
-	}
+	
 	
 }
 #endif // !Client_H_
