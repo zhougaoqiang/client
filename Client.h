@@ -151,7 +151,6 @@ void client::login()
 {
 	char passwordvalidation[100];
 	char accountCreateStatus[100];
-	char pass[7] = "passed";
 	memset(accountCreateStatus, '\0', sizeof(accountCreateStatus));
 	memset(passwordvalidation, '\0', sizeof(passwordvalidation));
 
@@ -159,45 +158,43 @@ void client::login()
 	cout << "1: New user; 2: login\n";
 	int accountCreation;
 	cin >> accountCreation;
-	
+
 	switch (accountCreation)
 	{
 	case 1:
-		char temp2[100];
 		while (1)
 		{
-				char temp1[100] = "New account creation";
-				cout << "New account creating...\n";
-				send(user, temp1, strlen(temp1), 0);
-				cout << "Please enter new username: \n";
-				cin >> username;
-				send(user, username, strlen(username), 0);
-				cout << "Please enter your password: \n";
-				cin >> password;
-				send(user, password, strlen(password), 0);
+			char temp1[100] = "New account creation";
+			cout << "New account creating...\n";
+			send(user, temp1, strlen(temp1), 0);
+			cout << "Please enter new username: \n";
+			cin >> username;
+			send(user, username, strlen(username), 0);
+			cout << "Please enter your password: \n";
+			cin >> password;
+			send(user, password, strlen(password), 0);
 
 
-				int size = recv(user, accountCreateStatus, sizeof(accountCreateStatus), 0);
-				if (size > 0)
+			int size = recv(user, accountCreateStatus, sizeof(accountCreateStatus), 0);
+			if (size > 0)
+			{
+				if (strcmp("User account creation successfully", accountCreateStatus) == 0)
 				{
-					char temprec[] = "User account creation successfully";
-					if (strcmp(temprec, accountCreateStatus) == 0)
-					{
-						cout << accountCreateStatus << endl;
-						break;
-					}
-					else
-					{
-						cout << accountCreateStatus << endl;
-						exit(1);
-					}
+					cout << accountCreateStatus << endl;
+					break;
 				}
 				else
 				{
-					cout << "connection failed." << endl;
+					cout << accountCreateStatus << endl;
 					exit(1);
 				}
-				break;
+			}
+			else
+			{
+				cout << "connection failed." << endl;
+				exit(1);
+			}
+			break;
 		}
 		break;
 	default:
@@ -216,7 +213,7 @@ void client::login()
 			int size = recv(user, passwordvalidation, sizeof(passwordvalidation), 0);
 			if (size > 0)
 			{
-				if (strcmp(pass, passwordvalidation) == 0)
+				if (strcmp("passed", passwordvalidation) == 0)
 				{
 					cout << "login success\n";
 					break;
@@ -234,8 +231,6 @@ void client::login()
 			}
 		}
 	}
-	
-	
 }
 #endif // !Client_H_
 
